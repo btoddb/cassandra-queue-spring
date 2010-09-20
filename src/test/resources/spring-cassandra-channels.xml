@@ -23,6 +23,7 @@
 
     <bean id="cassQueueChannelAdapter" class="com.real.cassandra.queue.spring.CassandraQueueChannelAdapter">
         <constructor-arg name="cassQueue" ref="testQueue" />
+        <constructor-arg name="pushOnly" value="false" />
         <property name="txMgr" ref="cassQueueTxMgr" />
     </bean>
 
