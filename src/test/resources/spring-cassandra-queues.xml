@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:util="http://www.springframework.org/schema/util"
+
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd
+		"
+	> <!-- beans -->
+
+    <bean id="keyspaceOperator" class="me.prettyprint.hector.api.factory.HFactory" factory-method="createKeyspaceOperator">
+        <constructor-arg>
+            <util:constant static-field="com.real.cassandra.queue.repository.QueueRepositoryAbstractImpl.QUEUE_KEYSPACE_NAME"/>
+        </constructor-arg>
+        <constructor-arg ref="cluster"/>
+        <constructor-arg>
+            <util:constant static-field="com.real.cassandra.queue.repository.hector.QueueRepositoryImpl.consistencyLevelPolicy"/>
+        </constructor-arg>
+    </bean>
+    
+    <bean id="cassandraHostConfigurator" class="me.prettyprint.cassandra.service.CassandraHostConfigurator">
+        <constructor-arg value="${cassandra.hosts}"/>
+        <property name="port" value="${cassandra.port}"/>
+        <property name="cassandraThriftSocketTimeout" value="${cassandra.socketTimeout}"/>
+        <property name="clockResolution" value="MICROSECONDS"/>
+        <property name="maxIdle" value="${cassandra.hector.maxIdle}"/>
+        <property name="maxActive" value="${cassandra.hector.maxActive}"/>
+        <property name="lifo" value="${cassandra.hector.lilo}"/>
+        <property name="minEvictableIdleTimeMillis" value="${cassandra.hector.minEvictableIdleTimeMillis}"/>
+        <property name="maxWaitTimeWhenExhausted" value="${cassandra.hector.maxWaitTimeWhenExhausted}"/>
+        <property name="timeBetweenEvictionRunsMillis" value="${cassandra.hector.timeBetweenEvictionRunsMillis}"/>
+        <property name="exhaustedPolicy">
+            <util:constant static-field="${cassandra.hector.exhaustedPolicy}"/>
+        </property>  
+        <property name="useThriftFramedTransport" value="${cassandra.useFramedTransport}"/>
+    </bean> 
+
+    <bean id="cluster" class="me.prettyprint.cassandra.service.Cluster">
+        <constructor-arg value="QueueCluster"/>
+        <constructor-arg ref="cassandraHostConfigurator"/>
+    </bean>
+    
+    <bean id="qRepos" class="com.real.cassandra.queue.repository.hector.QueueRepositoryImpl" init-method="init">
+        <constructor-arg name="cluster" ref="cluster" />
+        <constructor-arg name="replicationFactor" value="1" />
+        <constructor-arg name="ko" ref="keyspaceOperator" />
+    </bean>
+    
+    <bean id="pipeDescFactory" class="com.real.cassandra.queue.pipes.PipeDescriptorFactory">
+        <constructor-arg name="qRepos" ref="qRepos" />
+    </bean>
+    
+    <bean id="popLocker" class="com.real.cassandra.queue.pipes.PipeLockerImpl" />
+    
+    <bean id="cqFactory" class="com.real.cassandra.queue.CassQueueFactoryImpl">
+        <constructor-arg name="qRepos" ref="qRepos"/>
+        <constructor-arg name="pipeDescFactory" ref="pipeDescFactory" />
+        <constructor-arg name="popLocker" ref="popLocker" />
+        
+    </bean>
+    
+    <bean id="testQueue" class="com.real.cassandra.queue.spring.QueueFactoryBean">
+        <constructor-arg name="qName" value="testQueue" />
+        <constructor-arg name="cqFactory" ref="cqFactory" />
+
+        <property name="qName" value="TestQueue" />
+        <property name="maxPopWidth" value="4" />
+        <property name="maxPushesPerPipe" value="100" />
+        <property name="maxPushTimeOfPipe" value="60000" />
+        <property name="popPipeRefreshDelay" value="1000" />
+    </bean>
+    
+    <bean id="notificationProps" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="locations">
+            <list>
+                <value>classpath:queue.properties</value>
+            </list>
+        </property>
+    </bean>
+    
+</beans>
+

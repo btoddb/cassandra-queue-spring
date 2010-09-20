@@ -4,10 +4,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.real.cassandra.queue.CassQMsg;
-import com.real.cassandra.queue.CassQueue;
+import com.real.cassandra.queue.CassQueueImpl;
+import com.real.cassandra.queue.PopperImpl;
+import com.real.cassandra.queue.PusherImpl;
 
 /**
- * Spring channel adapter connecting a spring channel to a {@link CassQueue}.
+ * Spring channel adapter connecting a spring channel to a {@link CassQueueImpl}
+ * .
  * 
  * @see #push(String)
  * @see #pop()
@@ -17,13 +20,19 @@ import com.real.cassandra.queue.CassQueue;
 public class CassandraQueueChannelAdapter {
     private static Logger logger = LoggerFactory.getLogger(CassandraQueueChannelAdapter.class);
 
-    private CassQueue cassQueue;
+    private CassQueueImpl cassQueue;
     private CassandraQueueTxMgr txMgr;
+    private PopperImpl popper;
+    private PusherImpl pusher;
 
     // private long checkDelay = 500; // millis
 
-    public CassandraQueueChannelAdapter(CassQueue cassQueue) {
+    public CassandraQueueChannelAdapter(CassQueueImpl cassQueue, boolean pushOnly) {
         this.cassQueue = cassQueue;
+        pusher = cassQueue.createPusher();
+        if (!pushOnly) {
+            popper = cassQueue.createPopper(true);
+        }
     }
 
     /**
@@ -35,7 +44,7 @@ public class CassandraQueueChannelAdapter {
     public String pop() {
         CassQMsg qMsg = null;
         try {
-            qMsg = cassQueue.pop();
+            qMsg = popper.pop();
             if (null == qMsg) {
                 return null;
             }
@@ -47,16 +56,16 @@ public class CassandraQueueChannelAdapter {
             else {
                 // TODO BTB:could simply tell queue to not move to delivered and
                 // skip this step for optimization
-                cassQueue.commit(qMsg);
+                popper.commit(qMsg);
             }
 
-            return qMsg.getValue();
+            return qMsg.getMsgData();
         }
         // propagate exception up so can be handled by tx mgmt code
         catch (Throwable e) {
             if (null == txMgr && null != qMsg) {
                 try {
-                    cassQueue.rollback(qMsg);
+                    popper.rollback(qMsg);
                 }
                 catch (Exception e1) {
                     logger.error("exception while rolling back because of a different issue", e);
@@ -74,7 +83,7 @@ public class CassandraQueueChannelAdapter {
 
     public void push(String data) {
         try {
-            cassQueue.push(data);
+            pusher.push(data);
         }
         catch (Exception e) {
             logger.error("exception while pushing onto queue", e);

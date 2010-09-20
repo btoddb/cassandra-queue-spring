@@ -10,15 +10,20 @@ import org.springframework.transaction.support.DefaultTransactionStatus;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import com.real.cassandra.queue.CassQMsg;
-import com.real.cassandra.queue.CassQueue;
+import com.real.cassandra.queue.CassQueueImpl;
 
 public class CassandraQueueTxMgr extends AbstractPlatformTransactionManager {
     private static final long serialVersionUID = 6652177773540264655L;
 
     private static Logger logger = LoggerFactory.getLogger(CassandraQueueTxMgr.class);
 
-    private CassQueue cassQueue;
+    private CassQueueImpl cassQueue;
 
+    public CassandraQueueTxMgr( CassQueueImpl cassQueue ) {
+    this.cassQueue = cassQueue;
+    
+    }
+    
     @Override
     protected Object doGetTransaction() throws TransactionException {
         logger.debug("get tx");
@@ -101,7 +106,7 @@ public class CassandraQueueTxMgr extends AbstractPlatformTransactionManager {
         TransactionSynchronizationManager.unbindResource(getCassQueue());
     }
 
-    public static void setMessageOnThread(CassQueue cq, CassQMsg qMsg) {
+    public static void setMessageOnThread(CassQueueImpl cq, CassQMsg qMsg) {
         CassQueueResourceHolder resHolder = (CassQueueResourceHolder) TransactionSynchronizationManager.getResource(cq);
         if (null == resHolder) {
             throw new IllegalStateException("No resource on thread.  Was transaction started?");
@@ -109,12 +114,8 @@ public class CassandraQueueTxMgr extends AbstractPlatformTransactionManager {
         resHolder.setqMsg(qMsg);
     }
 
-    public CassQueue getCassQueue() {
+    public CassQueueImpl getCassQueue() {
         return cassQueue;
-    }
-
-    public void setCassQueue(CassQueue cassQueue) {
-        this.cassQueue = cassQueue;
     }
 
 }

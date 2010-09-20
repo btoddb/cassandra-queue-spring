@@ -6,11 +6,10 @@ import java.util.Queue;
 
 import javax.annotation.Resource;
 
-import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.scale7.cassandra.pelops.Pelops;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageBuilder;
@@ -18,9 +17,8 @@ import org.springframework.integration.core.MessageChannel;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import com.real.cassandra.queue.CassQueue;
-import com.real.cassandra.queue.TestUtils;
-import com.real.cassandra.queue.repository.QueueRepository;
+import com.real.cassandra.queue.CassQueueImpl;
+import com.real.cassandra.queue.PusherImpl;
 
 /**
  * Test the spring channel adapter, {@link CassandraQueueChannelAdapter}.
@@ -33,27 +31,29 @@ import com.real.cassandra.queue.repository.QueueRepository;
         "classpath:spring-config-properties.xml"
 
 })
-public class CassandraQueueChannelAdapterTest {
-    @Autowired
-    private QueueRepository qRep;
-
+public class CassandraQueueChannelAdapterTest extends CassQueueSpringTestBase {
     @Resource(name = "testQueue")
-    private CassQueue cq;
+    private CassQueueImpl cq;
 
     @Autowired
     private MsgReceivedConsumer msgReceivedConsumer;
 
-    @Resource(name = "testChannel")
-    private MessageChannel testChannel;
+    @Resource(name = "testPushChannel")
+    private MessageChannel testPushChannel;
 
-    private TestUtils testUtils;
+    // @Resource(name = "testPopChannel")
+    // private MessageChannel testPopChannel;
+
+    private PusherImpl pusher;
+
+    // private PopperImpl popper;
 
     @Test
     public void testPush() throws Exception {
         int numEvents = 100;
         for (int i = 0; i < numEvents; i++) {
             final Message<String> eventMsg = MessageBuilder.withPayload("xxx_" + i).build();
-            testChannel.send(eventMsg);
+            testPushChannel.send(eventMsg);
         }
 
         verifyAllPopped(numEvents);
@@ -69,7 +69,7 @@ public class CassandraQueueChannelAdapterTest {
     public void testPop() throws Exception {
         int numEvents = 100;
         for (int i = 0; i < numEvents; i++) {
-            cq.push("xxx_" + i);
+            pusher.push("xxx_" + i);
         }
 
         verifyAllPopped(numEvents);
@@ -78,6 +78,7 @@ public class CassandraQueueChannelAdapterTest {
     // -----------------------
 
     private void verifyAllPopped(int numEvents) throws Exception {
+        Thread.sleep(500);
         int lastNum = -1;
         for (;;) {
             int curNum = msgReceivedConsumer.getMsgQueue().size();
@@ -91,24 +92,39 @@ public class CassandraQueueChannelAdapterTest {
         }
 
         Queue<String> msgQ = msgReceivedConsumer.getMsgQueue();
-        System.out.println("msgQ = " + testUtils.outputStringsAsCommaDelim(msgQ));
-        assertEquals("Events didn't get on channel properly: " + testUtils.outputStringsAsCommaDelim(msgQ), numEvents,
+        System.out.println("msgQ = " + outputStringsAsCommaDelim(msgQ));
+        assertEquals("Events didn't get on channel properly: " + outputStringsAsCommaDelim(msgQ), numEvents,
                 msgQ.size());
 
-        testUtils.verifyWaitingQueue(0);
-        testUtils.verifyDeliveredQueue(0);
+        // testUtils.verifyWaitingQueue(0);
+        // testUtils.verifyDeliveredQueue(0);
+    }
+
+    private String outputStringsAsCommaDelim(Queue<String> q) {
+        StringBuilder sb = new StringBuilder();
+        for (String str : q) {
+            if (0 < sb.length()) {
+                sb.append(", ");
+            }
+            sb.append(str);
+        }
+        return sb.toString();
     }
 
     @Before
     public void setupTest() throws Exception {
-        qRep.initCassandra(true);
-        testUtils = new TestUtils(cq);
+        cq.truncate();
+        pusher = cq.createPusher();
         msgReceivedConsumer.clear();
     }
 
-    @AfterClass
-    public static void shutdownQueueMgrAndPool() {
-        Pelops.shutdown();
+    @BeforeClass
+    public static void setupCassandra() {
+        try {
+            startCassandraInstance();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
     }
-
 }
