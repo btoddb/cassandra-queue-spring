@@ -27,8 +27,7 @@ import com.real.cassandra.queue.PusherImpl;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {
-        "classpath:spring-cassandra-channels.xml", "classpath:spring-cassandra-queues.xml",
-        "classpath:spring-config-properties.xml"
+        "classpath:spring-cassandra-channels.xml", "classpath:spring-cassandra-queues.xml"
 
 })
 public class CassandraQueueChannelAdapterTest extends CassQueueSpringTestBase {
