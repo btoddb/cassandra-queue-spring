@@ -25,8 +25,6 @@ public class CassandraQueueChannelAdapter {
     private PopperImpl popper;
     private PusherImpl pusher;
 
-    // private long checkDelay = 500; // millis
-
     public CassandraQueueChannelAdapter(CassQueueImpl cassQueue, boolean pushOnly) {
         this.cassQueue = cassQueue;
         pusher = cassQueue.createPusher();
