@@ -5,15 +5,11 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
 import org.apache.cassandra.contrib.utils.service.CassandraServiceDataCleaner;
-import org.apache.cassandra.io.util.FileUtils;
 import org.apache.cassandra.service.EmbeddedCassandraService;
+import org.apache.commons.io.FileUtils;
 import org.apache.thrift.transport.TTransportException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class CassQueueSpringTestBase {
-    private static Logger logger = LoggerFactory.getLogger(CassQueueSpringTestBase.class);
-
     private static boolean cassandraStarted = false;
 
     public static void startCassandraInstance() throws TTransportException, IOException, InterruptedException,
@@ -24,12 +20,8 @@ public class CassQueueSpringTestBase {
         }
 
         File dd = new File("cassandra-data");
-        try {
-            FileUtils.deleteRecursive(dd);
-        }
-        catch (IOException e) {
-            logger.debug("exception while deleting data directory, " + dd.getAbsolutePath(), e);
-        }
+        FileUtils.deleteDirectory(dd);
+
         CassandraServiceDataCleaner cleaner = new CassandraServiceDataCleaner();
         cleaner.prepare();
         EmbeddedCassandraService cassandra = new EmbeddedCassandraService();
