@@ -1,8 +1,9 @@
+*.iml
+*.ipr
+*.iws
 .classpath
+.springBeans
 .project
 .settings
-.springBeans
 cassandra-data
-eclipse-classes
 target
-CVS
