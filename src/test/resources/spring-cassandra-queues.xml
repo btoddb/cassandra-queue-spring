@@ -17,11 +17,11 @@
 
     <bean id="keyspace" class="me.prettyprint.hector.api.factory.HFactory" factory-method="createKeyspace">
         <constructor-arg>
-            <util:constant static-field="com.real.cassandra.queue.repository.QueueRepositoryAbstractImpl.QUEUE_KEYSPACE_NAME"/>
+            <util:constant static-field="com.real.cassandra.queue.repository.QueueRepositoryImpl.QUEUE_KEYSPACE_NAME"/>
         </constructor-arg>
         <constructor-arg ref="cluster"/>
         <constructor-arg>
-            <util:constant static-field="com.real.cassandra.queue.repository.hector.QueueRepositoryImpl.consistencyLevelPolicy"/>
+            <util:constant static-field="com.real.cassandra.queue.repository.QueueRepositoryImpl.consistencyLevelPolicy"/>
         </constructor-arg>
     </bean>
     
@@ -47,22 +47,24 @@
         <constructor-arg ref="cassandraHostConfigurator"/>
     </bean>
     
-    <bean id="qRepos" class="com.real.cassandra.queue.repository.hector.QueueRepositoryImpl" init-method="init">
+    <bean id="qRepos" class="com.real.cassandra.queue.repository.QueueRepositoryImpl" init-method="init">
         <constructor-arg name="cluster" ref="cluster" />
         <constructor-arg name="replicationFactor" value="1" />
-        <constructor-arg name="ko" ref="keyspace" />
+        <constructor-arg name="keyspace" ref="keyspace" />
     </bean>
     
     <bean id="pipeDescFactory" class="com.real.cassandra.queue.pipes.PipeDescriptorFactory">
         <constructor-arg name="qRepos" ref="qRepos" />
     </bean>
     
-    <bean id="popLocker" class="com.real.cassandra.queue.pipes.PipeLockerImpl" />
+    <bean id="popLocker" class="com.real.cassandra.queue.locks.LocalLockerImpl" />
+    <bean id="queueStatsLocker" class="com.real.cassandra.queue.locks.LocalLockerImpl" />
     
     <bean id="cqFactory" class="com.real.cassandra.queue.CassQueueFactoryImpl">
         <constructor-arg name="qRepos" ref="qRepos"/>
         <constructor-arg name="pipeDescFactory" ref="pipeDescFactory" />
         <constructor-arg name="popLocker" ref="popLocker" />
+        <constructor-arg name="queueStatsLocker" ref="queueStatsLocker" />
         
     </bean>
     
