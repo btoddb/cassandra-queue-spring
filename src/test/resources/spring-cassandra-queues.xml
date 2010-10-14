@@ -60,7 +60,6 @@
     
     <bean id="cqFactory" class="com.real.cassandra.queue.CassQueueFactoryImpl">
         <constructor-arg name="qRepos" ref="qRepos"/>
-        <constructor-arg name="pipeDescFactory" ref="pipeDescFactory" />
         <constructor-arg name="popLocker" ref="popLocker" />
         <constructor-arg name="queueStatsLocker" ref="queueStatsLocker" />
         
