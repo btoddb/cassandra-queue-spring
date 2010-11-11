@@ -11,10 +11,10 @@ import com.real.cassandra.queue.PusherImpl;
 /**
  * Spring channel adapter connecting a spring channel to a {@link CassQueueImpl}
  * .
- * 
+ *
  * @see #push(String)
  * @see #pop()
- * 
+ *
  * @author Todd Burruss
  */
 public class CassandraQueueChannelAdapter {
@@ -36,7 +36,7 @@ public class CassandraQueueChannelAdapter {
     /**
      * Called by channel adapter periodically to grab message from queue and
      * deliver via channel.
-     * 
+     *
      * @return {@link CassQMsg}
      */
     public String pop() {
@@ -83,7 +83,7 @@ public class CassandraQueueChannelAdapter {
         try {
             pusher.push(data);
         }
-        catch (Exception e) {
+        catch (Throwable e) {
             logger.error("exception while pushing onto queue", e);
         }
     }

@@ -19,7 +19,7 @@ public class CassQueueSpringTestBase {
             return;
         }
 
-        File dd = new File("cassandra-data");
+        File dd = new File("target/cassandra-data");
         FileUtils.deleteDirectory(dd);
 
         CassandraServiceDataCleaner cleaner = new CassandraServiceDataCleaner();

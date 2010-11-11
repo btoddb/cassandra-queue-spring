@@ -40,6 +40,22 @@
 					<target>1.6</target>
 				</configuration>
 			</plugin>
+
+            <!-- create source jars just prior to repo install-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
 		</plugins>
 	</build>
 
@@ -51,6 +67,15 @@
 			<organization>RealNetworks</organization>
 			<roles>
 				<role>Principal Engineer</role>
+			</roles>
+		</developer>
+		<developer>
+			<id>aebaugh</id>
+			<name>Andrew Ebaugh</name>
+			<email>aebaugh@real.com</email>
+			<organization>RealNetworks</organization>
+			<roles>
+				<role>Lead SDE</role>
 			</roles>
 		</developer>
 	</developers>
