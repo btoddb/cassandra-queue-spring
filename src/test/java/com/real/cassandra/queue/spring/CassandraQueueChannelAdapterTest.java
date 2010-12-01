@@ -12,8 +12,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
-import org.springframework.integration.core.MessageBuilder;
-import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.MessageChannel;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -77,7 +77,7 @@ public class CassandraQueueChannelAdapterTest extends CassQueueSpringTestBase {
     // -----------------------
 
     private void verifyAllPopped(int numEvents) throws Exception {
-        Thread.sleep(500);
+        Thread.sleep(1000);
         int lastNum = -1;
         for (;;) {
             int curNum = msgReceivedConsumer.getMsgQueue().size();

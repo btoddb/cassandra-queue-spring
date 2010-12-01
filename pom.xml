@@ -7,10 +7,10 @@
 	<name>Cassandra Queue Spring</name>
 	<description>Integration of Cassandra Queue and Spring Integration</description>
 
-	<properties>
-	   <spring.version>3.0.3.RELEASE</spring.version> 
-		<spring-integration.version>2.0.0.M6</spring-integration.version>
-	</properties>
+    <properties>
+       <spring.version>3.0.5.RELEASE</spring.version> 
+       <spring-integration.version>2.0.0.RELEASE</spring-integration.version>
+    </properties>
 
     <distributionManagement>
         <snapshotRepository>
@@ -93,6 +93,12 @@
 			<artifactId>spring-integration-core</artifactId>
 			<version>${spring-integration.version}</version>
 		</dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-tx</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
 
 		<dependency>
 			<groupId>org.springframework</groupId>
