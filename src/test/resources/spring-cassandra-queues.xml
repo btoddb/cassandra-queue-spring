@@ -47,22 +47,29 @@
         <constructor-arg ref="cassandraHostConfigurator"/>
     </bean>
     
+<!--    <bean id="hectorCacheMgr" class="com.real.hom.ClassCacheMgr" />-->
+    <bean id="hectorEntityMgr" class="com.real.hom.EntityManager">
+        <constructor-arg name="keyspace" ref="keyspace" />
+        <constructor-arg name="classpathPrefix" value="com.real.cassandra.queue" />
+    </bean>
+    
     <bean id="qRepos" class="com.real.cassandra.queue.repository.QueueRepositoryImpl" init-method="init">
         <constructor-arg name="cluster" ref="cluster" />
         <constructor-arg name="replicationFactor" value="1" />
         <constructor-arg name="keyspace" ref="keyspace" />
+        <constructor-arg name="entityMgr" ref="hectorEntityMgr" />
     </bean>
     
     <bean id="pipeDescFactory" class="com.real.cassandra.queue.pipes.PipeDescriptorFactory" />
     
     <bean id="popLocker" class="com.real.cassandra.queue.locks.LocalLockerImpl" />
     <bean id="queueStatsLocker" class="com.real.cassandra.queue.locks.LocalLockerImpl" />
+    <bean id="pipeCollectionLocker" class="com.real.cassandra.queue.locks.LocalLockerImpl" />
     
     <bean id="cqFactory" class="com.real.cassandra.queue.CassQueueFactoryImpl">
         <constructor-arg name="qRepos" ref="qRepos"/>
-        <constructor-arg name="popLocker" ref="popLocker" />
         <constructor-arg name="queueStatsLocker" ref="queueStatsLocker" />
-        
+        <constructor-arg name="pipeCollectionLocker" ref="pipeCollectionLocker" />
     </bean>
     
     <bean id="testQueue" class="com.real.cassandra.queue.spring.QueueFactoryBean">
@@ -70,10 +77,9 @@
         <constructor-arg name="cqFactory" ref="cqFactory" />
 
         <property name="qName" value="TestQueue" />
-        <property name="maxPopWidth" value="4" />
         <property name="maxPushesPerPipe" value="100" />
         <property name="maxPushTimeOfPipe" value="60000" />
-        <property name="popPipeRefreshDelay" value="1000" />
+        <property name="transactionTimeout" value="30000" />
     </bean>
     
     <bean id="notificationProps" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">

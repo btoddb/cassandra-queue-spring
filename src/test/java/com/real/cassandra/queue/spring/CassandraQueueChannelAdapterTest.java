@@ -39,13 +39,9 @@ public class CassandraQueueChannelAdapterTest extends CassQueueSpringTestBase {
 
     @Resource(name = "testPushChannel")
     private MessageChannel testPushChannel;
-
-    // @Resource(name = "testPopChannel")
-    // private MessageChannel testPopChannel;
-
+    
+    @Resource(name= "pusher")
     private PusherImpl pusher;
-
-    // private PopperImpl popper;
 
     @Test
     public void testPush() throws Exception {
@@ -113,7 +109,6 @@ public class CassandraQueueChannelAdapterTest extends CassQueueSpringTestBase {
     @Before
     public void setupTest() throws Exception {
         cq.truncate();
-        pusher = cq.createPusher();
         msgReceivedConsumer.clear();
     }
 

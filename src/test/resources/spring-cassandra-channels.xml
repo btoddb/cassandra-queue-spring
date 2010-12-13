@@ -21,10 +21,14 @@
 
 	<int:outbound-channel-adapter channel="testPushChannel" ref="cassQueueChannelAdapter" method="push" />
 
+    <!-- do not need to do this in real world - only doing this for illustration and because tests need it -->
+    <bean id="pusher" class="com.real.cassandra.queue.PusherImpl" factory-bean="testQueue" factory-method="createPusher" />
+    
     <bean id="cassQueueChannelAdapter" class="com.real.cassandra.queue.spring.CassandraQueueChannelAdapter">
         <constructor-arg name="cassQueue" ref="testQueue" />
         <constructor-arg name="pushOnly" value="false" />
         <property name="txMgr" ref="cassQueueTxMgr" />
+        <property name="pusher" ref="pusher" />
     </bean>
 
 	<bean id="cassQueueTxMgr" class="com.real.cassandra.queue.spring.CassandraQueueTxMgr">

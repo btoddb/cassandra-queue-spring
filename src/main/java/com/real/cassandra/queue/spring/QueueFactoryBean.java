@@ -14,10 +14,9 @@ public class QueueFactoryBean implements FactoryBean<CassQueueImpl> {
     private String qName;
     private boolean distributed = false;
     private CassQueueFactoryImpl cqFactory;
-    private int maxPopWidth;
     private int maxPushesPerPipe;
     private long maxPushTimeOfPipe;
-    private long popPipeRefreshDelay;
+    private long transactionTimeout;
 
     public QueueFactoryBean(String qName, CassQueueFactoryImpl cqFactory) {
         this.qName = qName;
@@ -26,8 +25,7 @@ public class QueueFactoryBean implements FactoryBean<CassQueueImpl> {
 
     @Override
     public CassQueueImpl getObject() throws Exception {
-        return cqFactory.createInstance(qName, maxPushTimeOfPipe, maxPushesPerPipe, maxPopWidth, popPipeRefreshDelay,
-                distributed);
+        return cqFactory.createInstance(qName, maxPushTimeOfPipe, maxPushesPerPipe, transactionTimeout, distributed);
     }
 
     @Override
@@ -48,10 +46,6 @@ public class QueueFactoryBean implements FactoryBean<CassQueueImpl> {
         this.distributed = distributed;
     }
 
-    public void setMaxPopWidth(int maxPopWidth) {
-        this.maxPopWidth = maxPopWidth;
-    }
-
     public void setMaxPushesPerPipe(int maxPushesPerPipe) {
         this.maxPushesPerPipe = maxPushesPerPipe;
     }
@@ -60,8 +54,8 @@ public class QueueFactoryBean implements FactoryBean<CassQueueImpl> {
         this.maxPushTimeOfPipe = maxPushTimeOfPipe;
     }
 
-    public void setPopPipeRefreshDelay(long popPipeRefreshDelay) {
-        this.popPipeRefreshDelay = popPipeRefreshDelay;
+    public void setTransactionTimeout(long transactionTimeout) {
+        this.transactionTimeout = transactionTimeout;
     }
 
 }

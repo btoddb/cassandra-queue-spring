@@ -6,8 +6,8 @@ import java.util.Queue;
 public class MsgReceivedConsumer {
     private Queue<String> msgQueue = new LinkedList<String>();
 
-    public void execute(String msg) {
-        msgQueue.offer(msg);
+    public void execute(byte[] msg) {
+        msgQueue.offer(new String(msg));
     }
 
     public void clear() {

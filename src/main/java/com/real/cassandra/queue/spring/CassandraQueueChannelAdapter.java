@@ -29,7 +29,7 @@ public class CassandraQueueChannelAdapter {
         this.cassQueue = cassQueue;
         pusher = cassQueue.createPusher();
         if (!pushOnly) {
-            popper = cassQueue.createPopper(true);
+            popper = cassQueue.createPopper();
         }
     }
 
@@ -39,7 +39,7 @@ public class CassandraQueueChannelAdapter {
      *
      * @return {@link CassQMsg}
      */
-    public String pop() {
+    public byte[] pop() {
         CassQMsg qMsg = null;
         try {
             qMsg = popper.pop();
@@ -57,7 +57,7 @@ public class CassandraQueueChannelAdapter {
                 popper.commit(qMsg);
             }
 
-            return qMsg.getMsgData();
+            return qMsg.getMsgDesc().getPayload();
         }
         // propagate exception up so can be handled by tx mgmt code
         catch (Throwable e) {
@@ -90,5 +90,13 @@ public class CassandraQueueChannelAdapter {
 
     public void setTxMgr(CassandraQueueTxMgr txMgr) {
         this.txMgr = txMgr;
+    }
+
+    public void setPopper(PopperImpl popper) {
+        this.popper = popper;
+    }
+
+    public void setPusher(PusherImpl pusher) {
+        this.pusher = pusher;
     }
 }
