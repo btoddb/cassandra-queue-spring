@@ -13,8 +13,8 @@
     <int:channel id="testPopChannel" />
 
 	<int:inbound-channel-adapter channel="testPopChannel" ref="cassQueueChannelAdapter" method="pop">
-		<int:poller>
-			<int:interval-trigger interval="100" />
+		<int:poller max-messages-per-poll="1000">
+			<int:interval-trigger interval="200" />
             <int:transactional transaction-manager="cassQueueTxMgr" />
 		</int:poller>
 	</int:inbound-channel-adapter>
