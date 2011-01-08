@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:int="http://www.springframework.org/schema/integration"
+    xmlns:task="http://www.springframework.org/schema/task"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
+        http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd
+		">
+
+    <!-- Queue setup -->
+    <import resource="classpath:spring-cassandra-queues.xml" />
+
+    
+    <!-- SEND beans -->
+    <int:channel id="sendChannel" />
+
+    <int:outbound-channel-adapter channel="sendChannel" ref="sendChannelAdapter" method="push" />
+
+    <bean id="sendChannelAdapter" class="com.real.cassandra.queue.spring.CassandraQueueChannelAdapter">
+        <constructor-arg name="cassQueue" ref="testQueue" />
+        <property name="numPushers" value="3" />
+    </bean>
+
+
+
+    <!-- RECEIVE beans -->
+    <int:channel id="recvChannel" />
+
+	<bean id="cassQueueTxMgr" class="com.real.cassandra.queue.spring.CassandraQueueTxMgr">
+		<constructor-arg name="cassQueue" ref="testQueue" />
+	</bean>    
+
+    <bean id="pollingEndpoint" class="com.real.cassandra.queue.spring.QueuePollingEndpoint">
+        <property name="txMgr" ref="cassQueueTxMgr" />
+        <property name="outputChannel" ref="recvChannel" />
+        <property name="cassQueue" ref="testQueue" />
+        <property name="numberOfPoppers" value="6" />
+        <property name="threadsPerPopper" value="3" />
+        <property name="trigger">
+            <bean class="org.springframework.scheduling.support.PeriodicTrigger">
+                <constructor-arg value="500" />
+            </bean>
+        </property>
+    </bean>
+
+
+    <!-- EVENT handler -->
+    <!-- new recv'ed events are finally delivered to the StageController here -->
+    <int:service-activator input-channel="recvChannel" ref="stageController" method="receiveEvent" />
+
+    <!-- POJO receiving the new events -->
+    <bean id="stageController" class="com.real.cassandra.queue.spring.mock.MessageConsumer"/>
+
+
+</beans>

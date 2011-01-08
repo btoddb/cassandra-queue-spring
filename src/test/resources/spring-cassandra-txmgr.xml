@@ -9,23 +9,8 @@
          http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd
          ">
 
-    <!-- PUSH -->
-    <int:channel id="testPushChannel" />
+	<bean id="cassQueueTxMgr" class="com.real.cassandra.queue.spring.CassandraQueueTxMgr">
+		<constructor-arg name="cassQueue" ref="testQueue" />
+	</bean>
 
-    <bean id="cassQueueChannelAdapter" class="com.real.cassandra.queue.spring.CassandraQueueChannelAdapter">
-        <constructor-arg name="cassQueue" ref="testQueue" />
-        <property name="numPushers" value="1" />
-    </bean>
-
-    <int:outbound-channel-adapter channel="testPushChannel" ref="cassQueueChannelAdapter" method="push" />
-
-
-    <!-- POP -->
-    <int:channel id="testPopChannel" />
-
-    <bean id="msgReceivedConsumer" class="com.real.cassandra.queue.spring.mock.MessageConsumer" />
-    <int:service-activator input-channel="testPopChannel" ref="msgReceivedConsumer" method="receiveEvent" />
-
-    <import resource="classpath:spring-cassandra-polling-endpoint.xml" />
-    <import resource="classpath:spring-cassandra-txmgr.xml" />
 </beans>

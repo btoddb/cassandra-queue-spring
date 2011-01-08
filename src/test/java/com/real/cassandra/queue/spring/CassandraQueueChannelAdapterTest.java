@@ -1,7 +1,5 @@
 package com.real.cassandra.queue.spring;
 
-import static org.junit.Assert.assertEquals;
-
 import java.util.Queue;
 
 import javax.annotation.Resource;
@@ -14,11 +12,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.Message;
 import org.springframework.integration.MessageChannel;
 import org.springframework.integration.support.MessageBuilder;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.real.cassandra.queue.CassQueueImpl;
-import com.real.cassandra.queue.PusherImpl;
+import com.real.cassandra.queue.spring.mock.MessageConsumer;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * Test the spring channel adapter, {@link CassandraQueueChannelAdapter}.
@@ -30,24 +31,26 @@ import com.real.cassandra.queue.PusherImpl;
         "classpath:spring-cassandra-channels.xml", "classpath:spring-cassandra-queues.xml"
 
 })
+@DirtiesContext
 public class CassandraQueueChannelAdapterTest extends CassQueueSpringTestBase {
     @Resource(name = "testQueue")
     private CassQueueImpl cq;
 
     @Autowired
-    private MsgReceivedConsumer msgReceivedConsumer;
+    private MessageConsumer msgReceivedConsumer;
 
     @Resource(name = "testPushChannel")
     private MessageChannel testPushChannel;
     
-    @Resource(name= "pusher")
-    private PusherImpl pusher;
+    @Resource(name = "cassQueueChannelAdapter")
+    CassandraQueueChannelAdapter channelAdapter;
 
     @Test
     public void testPush() throws Exception {
         int numEvents = 100;
         for (int i = 0; i < numEvents; i++) {
-            final Message<String> eventMsg = MessageBuilder.withPayload("xxx_" + i).build();
+            String msg = "xxx_" + i;
+            final Message<byte[]> eventMsg = MessageBuilder.withPayload(msg.getBytes()).build();
             testPushChannel.send(eventMsg);
         }
 
@@ -64,7 +67,8 @@ public class CassandraQueueChannelAdapterTest extends CassQueueSpringTestBase {
     public void testPop() throws Exception {
         int numEvents = 100;
         for (int i = 0; i < numEvents; i++) {
-            pusher.push("xxx_" + i);
+            String msg = "xxx_" + i;
+            channelAdapter.push(msg.getBytes());
         }
 
         verifyAllPopped(numEvents);
@@ -76,7 +80,7 @@ public class CassandraQueueChannelAdapterTest extends CassQueueSpringTestBase {
         Thread.sleep(1000);
         int lastNum = -1;
         for (;;) {
-            int curNum = msgReceivedConsumer.getMsgQueue().size();
+            int curNum = msgReceivedConsumer.getMsgs().size();
             if (curNum == lastNum) {
                 break;
             }
@@ -86,7 +90,7 @@ public class CassandraQueueChannelAdapterTest extends CassQueueSpringTestBase {
             Thread.sleep(200);
         }
 
-        Queue<String> msgQ = msgReceivedConsumer.getMsgQueue();
+        Queue<Message<byte[]>> msgQ = msgReceivedConsumer.getMsgs();
         System.out.println("msgQ = " + outputStringsAsCommaDelim(msgQ));
         assertEquals("Events didn't get on channel properly: " + outputStringsAsCommaDelim(msgQ), numEvents,
                 msgQ.size());
@@ -95,9 +99,10 @@ public class CassandraQueueChannelAdapterTest extends CassQueueSpringTestBase {
         // testUtils.verifyDeliveredQueue(0);
     }
 
-    private String outputStringsAsCommaDelim(Queue<String> q) {
+    private String outputStringsAsCommaDelim(Queue<Message<byte[]>> q) {
         StringBuilder sb = new StringBuilder();
-        for (String str : q) {
+        for (Message<byte[]> msg : q) {
+            String str = new String(msg.getPayload());
             if (0 < sb.length()) {
                 sb.append(", ");
             }
@@ -109,7 +114,7 @@ public class CassandraQueueChannelAdapterTest extends CassQueueSpringTestBase {
     @Before
     public void setupTest() throws Exception {
         cq.truncate();
-        msgReceivedConsumer.clear();
+        msgReceivedConsumer.getMsgs().clear();
     }
 
     @BeforeClass

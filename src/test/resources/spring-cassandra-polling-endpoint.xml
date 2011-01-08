@@ -23,9 +23,21 @@
     <!-- POP -->
     <int:channel id="testPopChannel" />
 
+    <bean id="pollingEndpoint" class="com.real.cassandra.queue.spring.QueuePollingEndpoint">
+        <property name="outputChannel" ref="testPopChannel" />
+        <property name="cassQueue" ref="testQueue" />
+        <property name="numberOfPoppers" value="1" />
+        <property name="threadsPerPopper" value="1" />
+        <property name="trigger">
+            <bean class="org.springframework.scheduling.support.PeriodicTrigger">
+                <constructor-arg value="500" />
+            </bean>
+        </property>
+        <property name="txMgr" ref="cassQueueTxMgr" />
+    </bean>
+
     <bean id="msgReceivedConsumer" class="com.real.cassandra.queue.spring.mock.MessageConsumer" />
     <int:service-activator input-channel="testPopChannel" ref="msgReceivedConsumer" method="receiveEvent" />
 
-    <import resource="classpath:spring-cassandra-polling-endpoint.xml" />
     <import resource="classpath:spring-cassandra-txmgr.xml" />
 </beans>

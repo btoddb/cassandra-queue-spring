@@ -19,11 +19,10 @@ public class CassandraQueueTxMgr extends AbstractPlatformTransactionManager {
 
     private CassQueueImpl cassQueue;
 
-    public CassandraQueueTxMgr( CassQueueImpl cassQueue ) {
-    this.cassQueue = cassQueue;
-    
+    public CassandraQueueTxMgr(CassQueueImpl cassQueue) {
+        this.cassQueue = cassQueue;
     }
-    
+
     @Override
     protected Object doGetTransaction() throws TransactionException {
         logger.debug("get tx");
@@ -66,7 +65,7 @@ public class CassandraQueueTxMgr extends AbstractPlatformTransactionManager {
             }
             catch (Exception e) {
                 String msg = "exception while commiting transaction, call rollback or try again";
-                logger.error(msg);
+                logger.error(msg, e);
                 throw new TransactionSystemException(msg, e);
             }
         }
@@ -80,29 +79,21 @@ public class CassandraQueueTxMgr extends AbstractPlatformTransactionManager {
         }
 
         CassQMsg qMsg = txObj.getResourceHolder().getqMsg();
-        if (null == qMsg) {
-            throw new IllegalStateException("No cassandra queue msg found, cannot rollback!");
-        }
-
-        try {
-            cassQueue.rollback(qMsg);
-        }
-        catch (Exception e) {
-            String msg = "exception while commiting transaction, call rollback or try again";
-            logger.error(msg);
-            throw new TransactionSystemException(msg, e);
+        if (null != qMsg) {
+            try {
+                cassQueue.rollback(qMsg);
+            }
+            catch (Exception e) {
+                String msg = "exception while rolling back transaction - transaction has not been committed, nor has it been rolled back";
+                logger.error(msg, e);
+                throw new TransactionSystemException(msg, e);
+            }
         }
     }
 
     @Override
     protected void doCleanupAfterCompletion(Object transaction) {
         super.doCleanupAfterCompletion(transaction);
-        // CassQueueTransactionObject txObj = (CassQueueTransactionObject)
-        // transaction;
-        // if (null == txObj.getResourceHolder()) {
-        // throw new
-        // IllegalStateException("No transaction object found, cannot rollback!");
-        // }
         TransactionSynchronizationManager.unbindResource(getCassQueue());
     }
 
