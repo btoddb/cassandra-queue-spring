@@ -6,7 +6,6 @@ import javax.annotation.Resource;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.integration.MessageChannel;
@@ -25,7 +24,6 @@ import com.real.cassandra.queue.PusherImpl;
         "classpath:spring-cassandra-channels.xml", "classpath:spring-cassandra-queues.xml", "classpath:spring-cassandra-txmgr.xml"
 
 })
-@Ignore
 public class PopperPollerTest extends CassQueueSpringTestBase {
 
     @Resource(name = "testQueue")

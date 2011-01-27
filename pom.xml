@@ -1,37 +1,76 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.real</groupId>
 	<artifactId>cassandra-queue-spring</artifactId>
-	<version>0.3.3</version>
+	<version>0.3.6-SNAPSHOT</version>
 	<name>Cassandra Queue Spring</name>
 	<description>Integration of Cassandra Queue and Spring Integration</description>
 
     <properties>
+       <username>${env.USER}</username>
        <spring.version>3.0.5.RELEASE</spring.version> 
        <spring-integration.version>2.0.0.RELEASE</spring-integration.version>
     </properties>
 
-    <distributionManagement>
-        <snapshotRepository>
-            <id>maps-snapshot-repository</id>
-            <name>MAPS Snapshot Repository</name>
-            <url>scp://maven@build01.dev.real.com/data/snapshots</url>
-            <uniqueVersion>false</uniqueVersion>
-        </snapshotRepository>
+    <repositories>
         <repository>
+            <snapshots />
             <id>maps-internal-repo</id>
             <name>MAPS Internal Repository</name>
-            <url>scp://maven@build01.dev.real.com/home/maven/realrepo</url>
+            <url>http://build01.dev.real.com:9999/repository</url>
         </repository>
-<!--        <site>-->
-<!--            <id>website</id>-->
-<!--            <url>scp://maven@platform.real.com/var/www/html/mavencaps/uds4</url>-->
-<!--        </site>-->
-    </distributionManagement>
+
+        <repository>
+            <snapshots />
+            <id>maps-snapshot-repository</id>
+            <name>MAPS Internal Snapshot Repository</name>
+            <url>http://build01.dev.real.com/repository/snapshots/</url>
+        </repository>
+    </repositories>    
+
+	<distributionManagement>
+		<snapshotRepository>
+			<id>maps-snapshot-repository</id>
+			<name>MAPS Snapshot Repository</name>
+			<url>scp://maven@build01.dev.real.com/data/snapshots</url>
+			<uniqueVersion>false</uniqueVersion>
+		</snapshotRepository>
+		<repository>
+			<id>maps-internal-repo</id>
+			<name>MAPS Internal Repository</name>
+			<url>scp://maven@build01.dev.real.com/home/maven/realrepo</url>
+		</repository>
+		<site>
+			<id>website</id>
+			<url>scp://maven@platform.real.com/var/www/html/mavencaps/cassandra-queue</url>
+		</site>
+	</distributionManagement>
+
+    <scm>
+        <connection>scm:cvs:pserver:anon@cvs.dev.prognet.com:/home/np:shared/maps/cassandra-queue-spring</connection>
+        <developerConnection>scm:cvs:pserver:username@cvs.dev.prognet.com:/home/np:shared/maps/cassandra-queue-spring</developerConnection>
+        <url>https://cvs.dev.prognet.com/np/index.cgi/shared/maps/cassandra-queue-spring</url>
+  </scm>
 
 	<build>
+		<extensions>
+			<extension>
+				<groupId>org.apache.maven.wagon</groupId>
+				<artifactId>wagon-ssh</artifactId>
+				<version>1.0-beta-6</version>
+			</extension>
+        </extensions>
 		<plugins>
+            <!-- make sure install goal gets run -->
+            <plugin>
+                <artifactId>maven-release-plugin</artifactId>
+                <configuration>
+                    <preparationGoals>install</preparationGoals>
+                    <autoVersionSubmodules>true</autoVersionSubmodules>
+                    <arguments>-DskipTests</arguments>
+                </configuration>
+            </plugin>
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -56,6 +95,17 @@
                 </executions>
             </plugin>
 
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <argLine>-Xmx1024m</argLine>
+                    <!--<argLine>-Xmx1024m -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=8050</argLine>-->
+                    <!-- skip our integration tests -->
+                    <excludes>
+                        <exclude>**/integration/**</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>            
 		</plugins>
 	</build>
 
@@ -117,7 +167,7 @@
 		<dependency>
 			<groupId>com.real</groupId>
 			<artifactId>cassandra-queue</artifactId>
-			<version>0.3.3</version>
+			<version>0.3.5</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-io</groupId>

@@ -44,6 +44,7 @@ public class PopperPoller implements Runnable {
         this.maxMessagesPerPoll = maxMessagesPerPoll;
     }
 
+    @Override
     public void run() {
         int count = 0;
         while (maxMessagesPerPoll <= 0 || count < maxMessagesPerPoll) {

@@ -29,7 +29,7 @@
         <constructor-arg value="${cassandra.hosts}"/>
         <property name="port" value="${cassandra.port}"/>
         <property name="cassandraThriftSocketTimeout" value="${cassandra.socketTimeout}"/>
-        <property name="clockResolution" value="MICROSECONDS"/>
+<!--        <property name="clockResolution" value="MICROSECONDS"/>-->
         <property name="maxIdle" value="${cassandra.hector.maxIdle}"/>
         <property name="maxActive" value="${cassandra.hector.maxActive}"/>
         <property name="lifo" value="${cassandra.hector.lilo}"/>
@@ -47,8 +47,8 @@
         <constructor-arg ref="cassandraHostConfigurator"/>
     </bean>
     
-<!--    <bean id="hectorCacheMgr" class="com.real.hom.ClassCacheMgr" />-->
-    <bean id="hectorEntityMgr" class="com.real.hom.EntityManager">
+<!--    <bean id="hectorCacheMgr" class="me.prettyprint.hom.ClassCacheMgr" />-->
+    <bean id="hectorEntityMgr" class="me.prettyprint.hom.EntityManagerImpl">
         <constructor-arg name="keyspace" ref="keyspace" />
         <constructor-arg name="classpathPrefix" value="com.real.cassandra.queue" />
     </bean>
